@@ -17,9 +17,7 @@ public class PlayerMovement : MonoBehaviour {
 		// Add basic movement to the sides.
 		if (Input.GetKey("d")) {
 			_rb.AddForce(_sideForce * Time.deltaTime, 0, 0, ForceMode.VelocityChange);
-		}
-
-		if (Input.GetKey("a")) {
+		} else if (Input.GetKey("a")) {
 			_rb.AddForce(-_sideForce * Time.deltaTime, 0, 0, ForceMode.VelocityChange);
 		}
 
