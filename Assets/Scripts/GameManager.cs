@@ -8,8 +8,9 @@ public class GameManager : MonoBehaviour {
 	public float _restartDelay = 2f;
 
     public Transform _player;
-    public GameObject ObstaclePrefab;
+    public GameObject _obstaclePrefab;
 	public GameObject _completeLevelUI;
+    public PlayerMovement _movement;
 
 	public void LevelComplete () {
 		_completeLevelUI.SetActive(true);
@@ -18,33 +19,35 @@ public class GameManager : MonoBehaviour {
 	public void EndGame () {
 		if (!_gameHasEnded) {
 			Debug.Log("Game Over!");
+
+            CancelInvoke("SpawnL");
+            CancelInvoke("SpawnR");
+
+            _movement.enabled = false;
 			_gameHasEnded = true;
+
 			Invoke("Restart", _restartDelay);
 		}
 	}
 
-    void Spawn1()
-    {
-        Instantiate(ObstaclePrefab, new Vector3(Random.Range(-7, 0), 1, Mathf.Floor(_player.position.z) + 100), Quaternion.identity);
+    void SpawnL() {
+        Instantiate(_obstaclePrefab, new Vector3(Mathf.Floor(Random.Range(-7, 0)), 1, Mathf.Floor(_player.position.z) + 100), Quaternion.identity);
     }
 
-    void Spawn2()
-    {
-        Instantiate(ObstaclePrefab, new Vector3(Random.Range(0, 7), 1, Mathf.Floor(_player.position.z) + 100), Quaternion.identity);
+    void SpawnR() {
+        Instantiate(_obstaclePrefab, new Vector3(Mathf.Ceil(Random.Range(0, 7)), 1, Mathf.Floor(_player.position.z) + 100), Quaternion.identity);
     }
 
     void Start()
     {
-        InvokeRepeating("Spawn1", 0, 0.3f);
-        InvokeRepeating("Spawn2", 0, 0.2f);
+        InvokeRepeating("SpawnL", 0f, 0.2f);
+        InvokeRepeating("SpawnR", 0f, 0.2f);
     }
 
     void FixedUpdate() {
         if (Input.GetKey("r")) {
             Restart();
         }
-
-        
     }
 
 	void Restart () {
