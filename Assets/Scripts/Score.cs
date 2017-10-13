@@ -8,6 +8,6 @@ public class Score : MonoBehaviour
 
     void Update()
     {
-        _score.text = "Score: " + _player.position.z.ToString("0");
+        _score.text = "Score: " + Mathf.Ceil(_player.position.z);
     }
 }
