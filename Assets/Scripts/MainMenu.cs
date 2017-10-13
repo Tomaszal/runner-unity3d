@@ -1,38 +1,33 @@
 ﻿using UnityEngine;
 using UnityEngine.SceneManagement;
+using System.Collections;
 
 public class MainMenu : MonoBehaviour
 {
-    public void StartEasy()
+    public Fade _fade;
+
+    void Start()
     {
-    	Debug.Log("Starting with easy difficulty.");
-
-    	ApplicationModel._difficulty = 1;
-
-        SceneManager.LoadScene("Randomized Level", LoadSceneMode.Single);
+        _fade.BeginFade(-1);
     }
 
-    public void StartMedium()
+    public void StartGame(int _difficulty)
     {
-    	Debug.Log("Starting with medium difficulty.");
+    	ApplicationModel._difficulty = _difficulty;
 
-    	ApplicationModel._difficulty = 2;
-
-        SceneManager.LoadScene("Randomized Level", LoadSceneMode.Single);
+    	StartCoroutine(LoadGame());
     }
 
-    public void StartHard()
+    IEnumerator LoadGame()
     {
-    	Debug.Log("Starting with hard difficulty.");
+    	yield return new WaitForSeconds(_fade.BeginFade(1));
 
-    	ApplicationModel._difficulty = 3;
-    	
-        SceneManager.LoadScene("Randomized Level", LoadSceneMode.Single);
+        SceneManager.LoadScene(1, LoadSceneMode.Single);
     }
 
     public void ExitGame()
     {
-    	Debug.Log("Exiting the game.");
+        Debug.Log("Exiting the game.");
     	
         Application.Quit();
     }

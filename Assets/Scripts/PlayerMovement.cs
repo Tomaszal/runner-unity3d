@@ -20,4 +20,12 @@ public class PlayerMovement : MonoBehaviour
             _rb.AddForce(-_sideForce * Time.deltaTime, 0f, 0f, ForceMode.VelocityChange);
         }
     }
+
+    void OnCollisionEnter(Collision _collisionInfo)
+    {
+        if (_collisionInfo.collider.tag == "Obstacle")
+        {
+            FindObjectOfType<GameManager>().EndGame();
+        }
+    }
 }
