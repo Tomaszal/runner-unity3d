@@ -2,25 +2,27 @@
 
 public class Fade : MonoBehaviour
 {
-    public Texture2D _fadeOutTexture;
-    public float _fadeSpeed = 0.85f;
+	public float fadeSpeed = 1.25f;
+	private int fadeDirection = -1;
 
-    private float _alpha = 1.0f;
-    private int _fadeDir = -1;
+	private Color colorGUI = Color.white;
 
-    void OnGUI()
-    {
-		_alpha += _fadeDir * _fadeSpeed * Time.deltaTime;
-		_alpha = Mathf.Clamp01(_alpha);
+	private void OnGUI()
+	{
+		// Calculate new alpha
+		colorGUI.a = Mathf.Clamp01(colorGUI.a + fadeDirection * fadeSpeed * Time.deltaTime);
 
-		GUI.color = new Color(GUI.color.r, GUI.color.g, GUI.color.b, _alpha);
+		// Put GUI (fade overlay) on top layer and draw it
 		GUI.depth = -1000;
-		GUI.DrawTexture( new Rect(0, 0, Screen.width, Screen.height), _fadeOutTexture);
-    }
+		GUI.color = colorGUI;
+		GUI.DrawTexture(new Rect(0, 0, Screen.width, Screen.height), Texture2D.whiteTexture);
+	}
 
-    public float BeginFade(int _direction)
-    {
-    	_fadeDir = _direction;
-    	return (_fadeSpeed);
-    }
+	public float BeginFade(int direction)
+	{
+		fadeDirection = direction;
+
+		// Return how long it will take to fade
+		return (1 / fadeSpeed);
+	}
 }

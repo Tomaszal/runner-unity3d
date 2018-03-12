@@ -5,119 +5,121 @@ using System.Collections;
 
 public class GameManager : MonoBehaviour
 {
-    private bool _gameHasEnded;
-    private int _highscore;
+	public static int difficulty;
+	private string[] difficultyNames = { "NaN", "Easy", "Medium", "Hard" };
 
-    public Text _scoreUI;
-    public Text _highscoreUI;
+	private float score;
+	public Text scoreUI;
+	private int highscore;
+	public Text highscoreUI;
 
-    public Transform _player;
-    public Transform _obstacles;
-    public GameObject _obstaclePrefab;
-    public GameObject _deathOverlayUI;
+	public Transform player;
+	public PlayerMovement movement;
 
-    public PlayerMovement _movement;
-    public Fade _fade;
+	public GameObject obstaclePrefab;
+	public Transform obstacles;
+	public int obstacleStartX = 100;
 
-    public void EndGame()
-    {
-        if (!_gameHasEnded)
-        {
-            CancelInvoke("SpawnL");
-            CancelInvoke("SpawnR");
+	public GameObject deathOverlayUI;
 
-            _movement.enabled = false;
-            _gameHasEnded = true;
+	public Fade fade;
 
-            Invoke("DeathOverlay", 1f);
-        }
-    }
+	IEnumerator DeathOverlayTransition()
+	{
+		yield return new WaitForSeconds(1);
+		yield return new WaitForSeconds(fade.BeginFade(1));
 
-    public void MenuButton()
-    {
-        StartCoroutine(Menu());
-    }
+		deathOverlayUI.SetActive(true);
 
-    public void RetryButton()
-    {
-        StartCoroutine(Retry());
-    }
+		yield return new WaitForSeconds(fade.BeginFade(-1));
+	}
 
-    IEnumerator Menu()
-    {
-        yield return new WaitForSeconds(_fade.BeginFade(1));
+	IEnumerator SceneTransition(int scene)
+	{
+		yield return new WaitForSeconds(fade.BeginFade(1));
 
-        SceneManager.LoadScene(0);
-    }
+		SceneManager.LoadScene(scene, LoadSceneMode.Single);
+	}
 
-    IEnumerator Retry()
-    {
-        yield return new WaitForSeconds(_fade.BeginFade(1));
+	public void SwitchScene(int scene)
+	{
+		StartCoroutine(SceneTransition(scene));
+	}
 
-        SceneManager.LoadScene(1);
-    }
+	public void InitiateDeath()
+	{
+		CancelInvoke("Spawn");
 
-    private void Spawn()
-    {
-        Instantiate(_obstaclePrefab, new Vector3(Mathf.Floor(Random.Range(-7, 0)), 1, Mathf.Floor(_player.position.z) + 100), Quaternion.identity, _obstacles);
-        Instantiate(_obstaclePrefab, new Vector3(Mathf.Ceil(Random.Range(0, 7)), 1, Mathf.Floor(_player.position.z) + 100), Quaternion.identity, _obstacles);
-    }
+		FindObjectOfType<PlayerMovement>().enabled = false;
 
-    private void Start()
-    {
-        _fade.BeginFade(-1);
+		foreach (Transform obstacle in obstacles)
+		{
+			obstacle.gameObject.GetComponent<ObstacleMovement>().enabled = false;
+		}
 
-        InvokeRepeating("Spawn", 1f, 0.5f / ApplicationModel._difficulty);
+		UpdateHighscore();
+		highscoreUI.text = difficultyNames[difficulty] + " highscore: " + highscore;
 
-        _highscore = PlayerPrefs.GetInt("Highscore" + ApplicationModel._difficulty);
-    }
+		StartCoroutine(DeathOverlayTransition());
+	}
 
-    private void Update()
-    {
-        if (Input.GetKey("r"))
-        {
-            CheckHighscore();
+	private void UpdateHighscore()
+	{
+		highscore = PlayerPrefs.GetInt("Highscore" + difficulty);
 
-            RetryButton();
-        }
+		if (score > highscore)
+		{
+			highscore = (int)score;
+			PlayerPrefs.SetInt("Highscore" + difficulty, highscore);
+		}
+	}
 
-        if (Input.GetKey(KeyCode.Escape))
-        {
-            EndGame();
-        }
+	private void Spawn()
+	{
+		int i;
 
-        _scoreUI.text = "Score: " + Mathf.Ceil(_player.position.z);
-    }
+		// Spawn 2 new obstacles
+		for (i = -7; i < 7; i += 7)
+		{
+			Instantiate(obstaclePrefab,
+			            new Vector3(Mathf.Floor(Random.Range(i, i + 7)), 1, obstacleStartX),
+			            Quaternion.identity, obstacles);
+		}
+	}
 
-    private void CheckHighscore()
-    {
-        if (Mathf.Ceil(_player.position.z) > _highscore)
-        {
-            _highscore = (int)(Mathf.Ceil(_player.position.z));
-            PlayerPrefs.SetInt("Highscore" + ApplicationModel._difficulty, _highscore);
-        }
-    }
+	private void Update()
+	{
+		if (FindObjectOfType<PlayerMovement>().enabled)
+		{
+			score += Time.deltaTime * 10;
+			scoreUI.text = "Score: " + (int)score;
+		}
 
-    private void DeathOverlay()
-    {
-        CheckHighscore();
+		if (Input.GetKey("r"))
+		{
+			SwitchScene(1);
+			return;
+		}
 
-        string _temp = "NaN";
+		if (Input.GetKeyDown(KeyCode.Escape))
+		{
+			if (deathOverlayUI.activeSelf)
+			{
+				SwitchScene(0);
+			}
+			else
+			{
+				InitiateDeath();
+			}
+			return;
+		}
+	}
 
-        switch (ApplicationModel._difficulty)
-        {
-            case 1:
-                _temp = "Easy";
-                break;
-            case 2:
-                _temp = "Medium";
-                break;
-            case 3:
-                _temp = "Hard";
-                break;
-        }
+	private void Start()
+	{
+		fade.BeginFade(-1);
 
-        _highscoreUI.text = _temp + " highscore: " + _highscore;
-        _deathOverlayUI.SetActive(true);
-    }
+		// Invoke obstacle spawning, frequency depends on difficulty
+		InvokeRepeating("Spawn", 1f, 0.5f / difficulty);
+	}
 }

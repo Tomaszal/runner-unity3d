@@ -2,30 +2,23 @@
 
 public class PlayerMovement : MonoBehaviour
 {
-    public Rigidbody _rb;
+	public float force = 200f;
 
-    public float _forwardForce = 20000f;
-    public float _sideForce = 100f;
-	
-    void FixedUpdate()
-    {
-        _rb.AddForce(0f, 0f, _forwardForce * Time.deltaTime);
+	private void FixedUpdate()
+	{
+		Rigidbody player;
 
-        if (Input.GetKey("d"))
-        {
-            _rb.AddForce(_sideForce * Time.deltaTime, 0f, 0f, ForceMode.VelocityChange);
-        }
-        else if (Input.GetKey("a"))
-        {
-            _rb.AddForce(-_sideForce * Time.deltaTime, 0f, 0f, ForceMode.VelocityChange);
-        }
-    }
+		player = GetComponent<Rigidbody>();
 
-    void OnCollisionEnter(Collision _collisionInfo)
-    {
-        if (_collisionInfo.collider.tag == "Obstacle")
-        {
-            FindObjectOfType<GameManager>().EndGame();
-        }
-    }
+		// Move player on the Z axis (sideways)
+		if (Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.RightArrow))
+		{
+			player.AddForce(force * Time.deltaTime, 0f, 0f, ForceMode.VelocityChange);
+		}
+
+		if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.LeftArrow))
+		{
+			player.AddForce(-force * Time.deltaTime, 0f, 0f, ForceMode.VelocityChange);
+		}
+	}
 }
